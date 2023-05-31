@@ -22,11 +22,11 @@ class SwinTransformer(keras.Model):
         patch_norm (bool): If True, add normalization after patch embedding. Default: True
         
     """
-    def __init__(self, img_size=224, patch_size=4, in_chans=3, num_classes=100,
+    def __init__(self, img_size=(224, 224), patch_size=(4, 4), in_chans=3, num_classes=100,
                 embed_dim=96, depths=[2, 2, 6, 2], num_heads=[3, 6, 12, 24],
                 window_size=7, mlp_ratio=4., qkv_bias=True, qk_scale=None, drop_rate=0.,
                 attn_drop=0., drop_path_rate=0.1, norm_layer=LayerNormalization, ape=False,
-                patch_norm=True, **kwargs):
+                patch_norm=True, include_top=False, **kwargs):
         
         super(SwinTransformer, self).__init__()
         
@@ -37,6 +37,7 @@ class SwinTransformer(keras.Model):
         self.patch_norm = patch_norm
         self.num_features = int(embed_dim * 2 ** (self.num_layers - 1))
         self.mlp_ratio = mlp_ratio
+        self.include_top = include_top
         
         # split image into non-overlapping patches
         self.patch_embed = PatchEmbed(
@@ -66,13 +67,14 @@ class SwinTransformer(keras.Model):
                                                 num_heads=num_heads[i_layer],
                                                 window_size=window_size,
                                                 mlp_ratio=self.mlp_ratio,
-                                                qkv_bias=qkv_bias, qk_scale=qk_scale,
-                                                drop=drop_rate, attn_drop=attn_drop_rate,
-                                                drop_path_prob=dpr[sum(depths[:i_layer]):sum(
-                                                    depths[:i_layer + 1])],
+                                                qkv_bias=qkv_bias,
+                                                qk_scale=qk_scale,
+                                                drop=drop_rate,
+                                                attn_drop=attn_drop,
+                                                drop_path=dpr[sum(depths[:i_layer]):sum(depths[:i_layer + 1])],
                                                 norm_layer=norm_layer,
                                                 downsample=PatchMerging if (
-                                                    i_layer < self.num_layers - 1)) else None for i_layer in range(self.num_layers)])
+                                                    i_layer < self.num_layers - 1) else None) for i_layer in range(self.num_layers)])
         
         
         self.basic_layers = basic_layers

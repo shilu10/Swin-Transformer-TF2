@@ -1,84 +1,126 @@
+def get_relative_position_index(win_h, win_w):
+    # get pair-wise relative position index for each token inside the window
+    xx, yy = tf.meshgrid(range(win_h), range(win_w))
+    coords = tf.stack([yy, xx], axis=0)  # [2, Wh, Ww]
+    coords_flatten = tf.reshape(coords, [2, -1])  # [2, Wh*Ww]
+
+    relative_coords = (
+        coords_flatten[:, :, None] - coords_flatten[:, None, :]
+    )  # [2, Wh*Ww, Wh*Ww]
+    relative_coords = tf.transpose(
+        relative_coords, perm=[1, 2, 0]
+    )  # [Wh*Ww, Wh*Ww, 2]
+
+    xx = (relative_coords[:, :, 0] + win_h - 1) * (2 * win_w - 1)
+    yy = relative_coords[:, :, 1] + win_w - 1
+    relative_coords = tf.stack([xx, yy], axis=-1)
+
+    return tf.reduce_sum(relative_coords, axis=-1)  # [Wh*Ww, Wh*Ww]
+
+
 class WindowAttention(layers.Layer):
-    def __init__(
-        self, dim, window_size, num_heads, qkv_bias=True, dropout_rate=0.0, **kwargs
-    ):
-        super().__init__(**kwargs)
+    """Window based multi-head self attention (W-MSA) module with relative position bias.
+    It supports both of shifted and non-shifted window.
+
+    Args:
+        dim (int): Number of input channels.
+        num_heads (int): Number of attention heads.
+        head_dim (int): Number of channels per head (dim // num_heads if not set)
+        window_size (tuple[int]): The height and width of the window.
+        qkv_bias (bool, optional):  If True, add a learnable bias to query, key, value. Default: True
+        attn_drop (float, optional): Dropout ratio of attention weight. Default: 0.0
+        proj_drop (float, optional): Dropout ratio of output. Default: 0.0
+    """
+
+    def __init__(self, dim, num_heads, head_dim=None, window_size=7,
+                         qkv_bias=True, attn_drop=0.0, proj_drop=0.0,**kwargs):
+
+        super(WindowAttention, self).__init__(**kwargs)
+
         self.dim = dim
-        self.window_size = window_size
+        self.window_size = (
+            window_size
+            if isinstance(window_size, collections.abc.Iterable)
+            else (window_size, window_size)
+        )  # Wh, Ww
+        self.win_h, self.win_w = self.window_size
+        self.window_area = self.win_h * self.win_w
         self.num_heads = num_heads
-        self.scale = (dim // num_heads) ** -0.5
-        self.qkv = layers.Dense(dim * 3, use_bias=qkv_bias)
-        self.dropout = layers.Dropout(dropout_rate)
-        self.proj = layers.Dense(dim)
+        self.head_dim = head_dim or (dim // num_heads)
+        self.attn_dim = self.head_dim * num_heads
+        self.scale = self.head_dim ** -0.5
+
+        # get pair-wise relative position index for each token inside the window
+        self.relative_position_index = get_relative_position_index(
+            self.win_h, self.win_w
+        )
+
+        self.qkv = layers.Dense(
+            self.attn_dim * 3, use_bias=qkv_bias, name="attention_qkv"
+        )
+        self.attn_drop = layers.Dropout(attn_drop)
+        self.proj = layers.Dense(dim, name="attention_projection")
+        self.proj_drop = layers.Dropout(proj_drop)
 
     def build(self, input_shape):
-        num_window_elements = (2 * self.window_size[0] - 1) * (
-            2 * self.window_size[1] - 1
-        )
         self.relative_position_bias_table = self.add_weight(
-            shape=(num_window_elements, self.num_heads),
-            initializer=tf.initializers.Zeros(),
+            shape=((2 * self.win_h - 1) * (2 * self.win_w - 1), self.num_heads),
+            initializer="zeros",
             trainable=True,
+            name="relative_position_bias_table",
         )
-        coords_h = np.arange(self.window_size[0])
-        coords_w = np.arange(self.window_size[1])
-        coords_matrix = np.meshgrid(coords_h, coords_w, indexing="ij")
-        coords = np.stack(coords_matrix)
-        coords_flatten = coords.reshape(2, -1)
-        relative_coords = coords_flatten[:, :, None] - coords_flatten[:, None, :]
-        relative_coords = relative_coords.transpose([1, 2, 0])
-        relative_coords[:, :, 0] += self.window_size[0] - 1
-        relative_coords[:, :, 1] += self.window_size[1] - 1
-        relative_coords[:, :, 0] *= 2 * self.window_size[1] - 1
-        relative_position_index = relative_coords.sum(-1)
+        super().build(input_shape)
 
-        self.relative_position_index = tf.Variable(
-            initial_value=tf.convert_to_tensor(relative_position_index), trainable=False
-        )
-
-    def call(self, x, mask=None):
-        _, size, channels = x.shape
-        head_dim = channels // self.num_heads
-        x_qkv = self.qkv(x)
-        x_qkv = tf.reshape(x_qkv, shape=(-1, size, 3, self.num_heads, head_dim))
-        x_qkv = tf.transpose(x_qkv, perm=(2, 0, 3, 1, 4))
-        q, k, v = x_qkv[0], x_qkv[1], x_qkv[2]
-        q = q * self.scale
-        k = tf.transpose(k, perm=(0, 1, 3, 2))
-        attn = q @ k
-
-        num_window_elements = self.window_size[0] * self.window_size[1]
-        relative_position_index_flat = tf.reshape(
-            self.relative_position_index, shape=(-1,)
-        )
+    def _get_rel_pos_bias(self) -> tf.Tensor:
         relative_position_bias = tf.gather(
-            self.relative_position_bias_table, relative_position_index_flat
+            self.relative_position_bias_table,
+            self.relative_position_index,
+            axis=0,
         )
-        relative_position_bias = tf.reshape(
-            relative_position_bias, shape=(num_window_elements, num_window_elements, -1)
-        )
-        relative_position_bias = tf.transpose(relative_position_bias, perm=(2, 0, 1))
-        attn = attn + tf.expand_dims(relative_position_bias, axis=0)
+        return tf.transpose(relative_position_bias, [2, 0, 1])
+
+    def call(
+        self, x, mask=None, return_attns=False
+    ) -> Union[tf.Tensor, Tuple[tf.Tensor, tf.Tensor]]:
+        """
+        Args:
+            x: input features with shape of (num_windows*B, N, C)
+            mask: (0/-inf) mask with shape of (num_windows, Wh*Ww, Wh*Ww) or None
+        """
+        B_, N, C = tf.shape(x)[0], tf.shape(x)[1], tf.shape(x)[2]
+        qkv = self.qkv(x)
+        qkv = tf.reshape(qkv, (B_, N, 3, self.num_heads, -1))
+        qkv = tf.transpose(qkv, (2, 0, 3, 1, 4))
+
+        q, k, v = tf.unstack(qkv, 3)
+
+        scale = tf.cast(self.scale, dtype=qkv.dtype)
+        q = q * scale
+        attn = tf.matmul(q, tf.transpose(k, perm=[0, 1, 3, 2]))
+        attn = attn + self._get_rel_pos_bias()
 
         if mask is not None:
-            nW = mask.get_shape()[0]
-            mask_float = tf.cast(
-                tf.expand_dims(tf.expand_dims(mask, axis=1), axis=0), tf.float32
+            num_win = tf.shape(mask)[0]
+            attn = tf.reshape(
+                attn, (B_ // num_win, num_win, self.num_heads, N, N)
             )
-            attn = (
-                tf.reshape(attn, shape=(-1, nW, self.num_heads, size, size))
-                + mask_float
-            )
-            attn = tf.reshape(attn, shape=(-1, self.num_heads, size, size))
-            attn = keras.activations.softmax(attn, axis=-1)
+            attn = attn + tf.expand_dims(mask, 1)[None, ...]
+
+            attn = tf.reshape(attn, (-1, self.num_heads, N, N))
+            attn = tf.nn.softmax(attn, -1)
         else:
-            attn = keras.activations.softmax(attn, axis=-1)
-        attn = self.dropout(attn)
+            attn = tf.nn.softmax(attn, -1)
 
-        x_qkv = attn @ v
-        x_qkv = tf.transpose(x_qkv, perm=(0, 2, 1, 3))
-        x_qkv = tf.reshape(x_qkv, shape=(-1, size, channels))
-        x_qkv = self.proj(x_qkv)
-        x_qkv = self.dropout(x_qkv)
-        return x_qkv
+        attn = self.attn_drop(attn)
 
+        x = tf.matmul(attn, v)
+        x = tf.transpose(x, perm=[0, 2, 1, 3])
+        x = tf.reshape(x, (B_, N, C))
+
+        x = self.proj(x)
+        x = self.proj_drop(x)
+
+        if return_attns:
+            return x, attn
+        else:
+            return x

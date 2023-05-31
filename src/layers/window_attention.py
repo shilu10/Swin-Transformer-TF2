@@ -79,9 +79,7 @@ class WindowAttention(layers.Layer):
         )
         return tf.transpose(relative_position_bias, [2, 0, 1])
 
-    def call(
-        self, x, mask=None, return_attns=False
-    ) -> Union[tf.Tensor, Tuple[tf.Tensor, tf.Tensor]]:
+    def call(self, x, mask=None, return_attns=False):
         """
         Args:
             x: input features with shape of (num_windows*B, N, C)

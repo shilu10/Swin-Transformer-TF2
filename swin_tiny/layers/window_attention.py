@@ -1,21 +1,8 @@
-def get_relative_position_index(win_h, win_w):
-    # get pair-wise relative position index for each token inside the window
-    xx, yy = tf.meshgrid(range(win_h), range(win_w))
-    coords = tf.stack([yy, xx], axis=0)  # [2, Wh, Ww]
-    coords_flatten = tf.reshape(coords, [2, -1])  # [2, Wh*Ww]
+from tensorflow import keras 
+import tensorflow as tf 
+from tensorflow.keras import Model 
+from tensorflow.keras.layers import *
 
-    relative_coords = (
-        coords_flatten[:, :, None] - coords_flatten[:, None, :]
-    )  # [2, Wh*Ww, Wh*Ww]
-    relative_coords = tf.transpose(
-        relative_coords, perm=[1, 2, 0]
-    )  # [Wh*Ww, Wh*Ww, 2]
-
-    xx = (relative_coords[:, :, 0] + win_h - 1) * (2 * win_w - 1)
-    yy = relative_coords[:, :, 1] + win_w - 1
-    relative_coords = tf.stack([xx, yy], axis=-1)
-
-    return tf.reduce_sum(relative_coords, axis=-1)  # [Wh*Ww, Wh*Ww]
 
 
 class WindowAttention(layers.Layer):
@@ -101,3 +88,22 @@ class WindowAttention(layers.Layer):
         x = self.proj_drop(x)
         return x
 
+
+def get_relative_position_index(win_h, win_w):
+    # get pair-wise relative position index for each token inside the window
+    xx, yy = tf.meshgrid(range(win_h), range(win_w))
+    coords = tf.stack([yy, xx], axis=0)  # [2, Wh, Ww]
+    coords_flatten = tf.reshape(coords, [2, -1])  # [2, Wh*Ww]
+
+    relative_coords = (
+        coords_flatten[:, :, None] - coords_flatten[:, None, :]
+    )  # [2, Wh*Ww, Wh*Ww]
+    relative_coords = tf.transpose(
+        relative_coords, perm=[1, 2, 0]
+    )  # [Wh*Ww, Wh*Ww, 2]
+
+    xx = (relative_coords[:, :, 0] + win_h - 1) * (2 * win_w - 1)
+    yy = relative_coords[:, :, 1] + win_w - 1
+    relative_coords = tf.stack([xx, yy], axis=-1)
+
+    return tf.reduce_sum(relative_coords, axis=-1)  # [Wh*Ww, Wh*Ww]

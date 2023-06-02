@@ -1,3 +1,8 @@
+import tensorflow as tf 
+from tensorflow import numpy 
+import numpy as np 
+
+
 def window_partition(x: tf.Tensor, window_size: int):
     """
         this function is used to create a local window, with the windo_size.

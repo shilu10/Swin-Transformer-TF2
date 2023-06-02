@@ -76,9 +76,14 @@ class DataLoader:
         try: 
             image = tf.cast(image, tf.float32)
             if self.__dname == 'cifar10':
+                print(label.shape)
                 label = tf.one_hot(label, 10)
+                label = tf.reshape(label, (label.shape[0], 10))
+             #   label = tf.reshape(label, 10)
             else:
                 label = tf.one_hot(label, 100)
+                label = tf.reshape(label, (label.shape[0], 100))
+               # label = tf.reshape(label, 100)
             
             if self.resize_shape > 0:
                 image = tf.image.resize(image, (self.resize_shape, self.resize_shape))
@@ -108,9 +113,10 @@ class DataLoader:
                 tensorflow_data = (
                 tensorflow_data
                     .shuffle(1024)
+                    .batch(batch_size, drop_remainder=True)
                     .map(lambda x, label: (self.__preprocess_img(x, label,  augment=True)),
                                                  num_parallel_calls=tf.data.AUTOTUNE).cache()
-                    .batch(batch_size, drop_remainder=True)
+                    
                     .prefetch(tf.data.experimental.AUTOTUNE)
                 )
                 return tensorflow_data  
@@ -162,4 +168,3 @@ class DataLoader:
             
         except Exception as err:
             raise err    
-

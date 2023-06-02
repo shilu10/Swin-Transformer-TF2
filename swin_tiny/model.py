@@ -23,10 +23,10 @@ class SwinTransformer(keras.Model):
         
     """
     def __init__(self, img_size=(224, 224), patch_size=(4, 4), in_chans=3, num_classes=100,
-                embed_dim=96, depths=[2, 2, 6, 2], num_heads=[3, 6, 12, 24],
+                embed_dim=96, depths=[2, 6], num_heads=[3, 6],
                 window_size=7, mlp_ratio=4., qkv_bias=True, qk_scale=None, drop_rate=0.,
                 attn_drop=0., drop_path_rate=0.1, norm_layer=LayerNormalization, ape=False,
-                patch_norm=True, include_top=False, **kwargs):
+                patch_norm=False, include_top=True, **kwargs):
         
         super(SwinTransformer, self).__init__()
         
@@ -43,10 +43,11 @@ class SwinTransformer(keras.Model):
         self.patch_embed = PatchEmbed(
             img_size=img_size, patch_size=patch_size, in_chans=in_chans, embed_dim=embed_dim,
             norm_layer=norm_layer if self.patch_norm else None)
+        
         num_patches = self.patch_embed.num_patches
         patches_resolution = self.patch_embed.patches_resolution
         self.patches_resolution = patches_resolution
-        
+                
         # absolute postion embedding
         if self.ape:
             self.absolute_pos_embed = self.add_weight('absolute_pos_embed',
@@ -85,20 +86,27 @@ class SwinTransformer(keras.Model):
         else:
             self.head = None
             
-        def forward_features(self, x):
-            x = self.patch_embed(x)
-            if self.ape:
-                x = x + self.absolute_pos_embed
-            x = self.pos_drop(x)
-
-            x = self.basic_layers(x)
-            x = self.norm(x)
-            x = self.avgpool(x)
-            return x
+    def forward_features(self, x):
+        x = self.patch_embed(x)
+        if self.ape:
+            x = x + self.absolute_pos_embed
+        x = self.pos_drop(x)
+    
+        x = self.basic_layers(x)
+        x = self.norm(x)
+        x = self.avgpool(x)
+        return x
         
-        def call(self, x):
-            x = self.forward_features(x)
-            if self.include_top:
-                x = self.head(x)
-            return x
-
+    def call(self, x):
+        x = self.forward_features(x)
+        if self.include_top:
+            x = self.head(x)
+        return x
+        
+    def build(self, input_shape):
+        x = Input(shape=input_shape)
+        return Model(inputs=[x], outputs=self.call(x))
+        
+    def __summary__(self, input_shape):
+        x = Input(shape=input_shape)
+        return Model(inputs=[x], outputs=self.call(x))

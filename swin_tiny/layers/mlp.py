@@ -1,10 +1,9 @@
-class MLP(keras.Model):
+class MLP(tf.keras.layers.Layer):
     """
         this class is a implementation of the mlp block described in the swin transformer paper, which contains 
         2 fully connected layer with GelU activation.
     """
-    def __init__(self, input_dims=None, hidden_neurons=None,
-                 output_neurons=None, act_type="gelu", dropout_rate=0., prefix=''):
+    def __init__(self, in_features, hidden_features=None, out_features=None, drop=0.):
         """
             Params:
                 input_neurons(dtype: int)   : input dimension for the mlp block, it needed only for .summary() method.
@@ -17,27 +16,20 @@ class MLP(keras.Model):
                 prefix(type: str)           : used for the naming the layers.
         """
         super(MLP, self).__init__()
-        
-        self.input_dims = input_dims
-        self.fc_1 = Dense(units=hidden_neurons, name=f"{prefix}/mlp/dense_1")
-        if act_type == "relu":
-            self.act = tf.keras.layers.ReLU()
-        else:
-            self.act = None
-        self.fc_2 = Dense(units=hidden_neurons, name=f"{prefix}/mlp/dense_2")
-        self.drop = Dropout(dropout_rate)
+        out_features = out_features or in_features
+        hidden_features = hidden_features or in_features
+        self.fc1 = Dense(hidden_features, name=f'mlp/fc1')
+        self.fc2 = Dense(out_features, name=f'mlp/fc2')
+        self.drop = Dropout(drop)
 
-    def forward(self, x):
+    def call(self, x):
         x = self.fc1(x)
-        if not self.act:
-            x = tf.keras.activations.gelu(x)
-        else: 
-            x = self.act(x)
+        x = tf.keras.activations.gelu(x)
         x = self.drop(x)
         x = self.fc2(x)
         x = self.drop(x)
         return x
-    
+
     def summary(self): 
         inputs = Input(shape=self.input_dims)
         return keras.Model(inputs=inputs, outputs=self.call(inputs))

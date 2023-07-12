@@ -19,9 +19,10 @@ def port_weights(model_type="swin_tiny_patch4_window7_224", include_top=True):
     print("Intializing the Tensorflow Model")
     print(list(paths.list_files(".configs/")))
     f = (glob.glob("configs/*.yaml"))
+    
     # read the data from yaml file
     config_file_path = f".configs/{model_type}.yaml"
-    with open(f[0], "r") as f:
+    with open(config_file_path, "r") as f:
         data = yaml.safe_load(f)
     
     print(data)

@@ -1,5 +1,5 @@
 from .utils import modify_tf_block
-from swin_transformer.models import SwinTransformer
+from .swin_transformer.model import SwinTransformer
 import numpy as np 
 import os, sys, shutil
 import tqdm 
@@ -12,28 +12,9 @@ import timm, transformers
 from typing import Dict, List
 
 
-parser = argparse.ArgumentParser(description="Conversion of the PyTorch pre-trained Swin weights to TensorFlow.")
-parser.add_argument("-m", 
-                    "--model-type", 
-                    default="swin_tiny_patch4_window7_224", 
-                    type=str, 
-                    help="Name of the Swin model variant."
-                )
-
-parser.add_argument(
-        "-it",
-        "--include_top",
-        action="store_true",
-        help="If we don't need the classification outputs.",
-    )
-
-args = parser.parse_args()
+def main(model_type="swin_tiny_patch4_window7_224", include_top=True):
+    os.environ['CUDA_VISIBLE_DEVICES'] = '0'
+    swin_trans = SwinTransformer()
+    print("Intializing the Tensorflow Model", swin_trans)
 
 
-def main(args):
-    print("Intializing the Tensorflow Model")
-     
-
-
-if __name__ == '__main__':
-    main(args)

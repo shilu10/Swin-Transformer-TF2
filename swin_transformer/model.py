@@ -1,6 +1,5 @@
 from tensorflow import keras 
 import tensorflow as tf 
-from blocks import BasicLayer
 import numpy as np 
 import os 
 from tensorflow.keras.layers import Dense, Input, UpSampling2D, Conv2DTranspose, Conv2D, add, Add,\
@@ -9,8 +8,9 @@ from tensorflow.keras.layers import Dense, Input, UpSampling2D, Conv2DTranspose,
 from tensorflow.keras import Model
 import collections.abc
 from typing import Tuple, Union
-from utils import to_ntuple
+from .utils import to_ntuple
 from tensorflow.keras.layers import *
+from tensorflow.keras import layers
 
 
 def window_partition(x: tf.Tensor, window_size: int):

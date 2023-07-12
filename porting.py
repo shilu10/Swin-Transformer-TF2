@@ -53,5 +53,144 @@ def port_weights(model_type="swin_tiny_patch4_window7_224", include_top=True):
     del huggingface_pt_model
     del timm_pt_model
 
-    print(timm_pt_model_dict.keys())
-    print(pt_model_dict.keys())
+    # main norm layer
+    tf_model.layers[-2] = modify_tf_block(
+            m.layers[-2],
+            pt_model_dict["layernorm.weight"],
+            pt_model_dict["layernorm.bias"],
+
+        )
+
+    # patch embed layer's projection
+
+    tf_model.layers[0].proj = modify_tf_block(
+        tf_model.layers[0].proj,
+        np.array(pt_model_dict["embeddings.patch_embeddings.projection.weight"]),
+        np.array(pt_model_dict["embeddings.patch_embeddings.projection.bias"])
+    )
+
+    # patch embed layer's normalization
+    tf_model.layers[0].norm = modify_tf_block(
+        tf_model.layers[0].norm,
+        np.array(pt_model_dict["embeddings.norm.weight"]),
+        np.array(pt_model_dict["embeddings.norm.bias"])
+    )
+
+
+    if include_top:
+        # classification layer
+
+        tf_model.layers[-1] = modify_tf_block(
+                tf_model.layers[-1],
+                timm_pt_model_dict["head.fc.weight"],
+                timm_pt_model_dict["head.fc.bias"],
+            )
+
+    # for swin layers
+    for i in range(len(data.get("depths"))):
+        swin_layer = m.layers[2 + i]
+        modify_swin_layer(swin_layer, i)
+
+    model_name = model_type if include_top else model_name = model_type + "_fe"
+    tf_model.save(model_name)
+    print("Tensorflow model serialized successfully at: ", model_name)
+
+
+def modify_swin_layer(swin_layer, swin_layer_indx):
+
+  for block_indx, block in enumerate(swin_layer.layers):
+
+    # layer and block combined name
+    pt_block_name = f"encoder.layers.{swin_layer_indx}.blocks.{block_indx}"
+
+    if isinstance(block, PatchMerging):
+
+      norm_weight = np.array(pt_model_dict[f"encoder.layers.{swin_layer_indx}.downsample.norm.weight"]).transpose()
+      norm_bias = np.array(pt_model_dict[f"encoder.layers.{swin_layer_indx}.downsample.norm.bias"]).transpose()
+
+      block.norm.gamma.assign(tf.Variable(norm_weight))
+      block.norm.beta.assign(tf.Variable(norm_bias))
+
+      # reduction
+      block.reduction = modify_tf_block(
+          block.reduction,
+          np.array(pt_model_dict[f"encoder.layers.{swin_layer_indx}.downsample.reduction.weight"]),
+        )
+
+    if isinstance(block, SwinTransformerBlock):
+      n_norm = 1
+
+      for inner_transformer_block in block.layers:
+
+        # Normalization layer (norm1 and norm2)
+        if isinstance(inner_transformer_block, LayerNormalization):
+          if n_norm == 1:
+            norm_layer_name = pt_block_name + ".layernorm_before"
+          else:
+            norm_layer_name = pt_block_name + ".layernorm_after"
+
+         # print(inner_transformer_block)
+
+          inner_transformer_block = modify_tf_block(
+              inner_transformer_block,
+              np.array(pt_model_dict[ norm_layer_name + ".weight"]),
+              np.array(pt_model_dict[ norm_layer_name + ".bias"])
+          )
+          n_norm += 1
+
+        # window attention layer:
+        if isinstance(inner_transformer_block, WindowAttention):
+          # relative position bias table
+          inner_transformer_block.relative_position_bias_table = modify_tf_block(
+            inner_transformer_block.relative_position_bias_table,
+            np.array(pt_model_dict[pt_block_name + ".attention.self.relative_position_bias_table"]),
+          )
+
+          # relative_position_index
+          inner_transformer_block.relative_position_index = modify_tf_block(
+            inner_transformer_block.relative_position_index,
+            np.array(pt_model_dict[pt_block_name + ".attention.self.relative_position_index"]),
+          )
+
+          # qkv matrix
+          q_weight = np.array(pt_model_dict[pt_block_name + ".attention.self.query.weight"])
+          k_weight = np.array(pt_model_dict[pt_block_name + ".attention.self.key.weight"])
+          v_weight = np.array(pt_model_dict[pt_block_name + ".attention.self.value.weight"])
+
+          qkv_weight = np.concatenate([q_weight, k_weight, v_weight])
+
+          q_bias = np.array(pt_model_dict[pt_block_name + ".attention.self.query.bias"])
+          k_bias = np.array(pt_model_dict[pt_block_name + ".attention.self.key.bias"])
+          v_bias = np.array(pt_model_dict[pt_block_name + ".attention.self.value.bias"])
+
+          qkv_bias = np.concatenate([q_bias, k_bias, v_bias])
+
+          inner_transformer_block.qkv = modify_tf_block(
+            inner_transformer_block.qkv,
+            qkv_weight,
+            qkv_bias
+          )
+
+          # qkv projection
+          inner_transformer_block.proj = modify_tf_block(
+            inner_transformer_block.proj,
+            np.array(pt_model_dict[pt_block_name + ".attention.output.dense.weight"]),
+            np.array(pt_model_dict[pt_block_name + ".attention.output.dense.bias"])
+          )
+
+          # mlp layer
+        if isinstance(inner_transformer_block, MLP):
+          # fc1
+          inner_transformer_block.fc1 = modify_tf_block(
+            inner_transformer_block.fc1,
+            np.array(pt_model_dict[pt_block_name + ".intermediate.dense.weight"]),
+            np.array(pt_model_dict[pt_block_name + ".intermediate.dense.bias"])
+          )
+
+          # fc2
+          inner_transformer_block.fc2 = modify_tf_block(
+            inner_transformer_block.fc2,
+            np.array(pt_model_dict[pt_block_name + ".output.dense.weight"]),
+            np.array(pt_model_dict[pt_block_name + ".output.dense.bias"])
+          )
+

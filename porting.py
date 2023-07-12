@@ -1,6 +1,6 @@
-from .utils import modify_tf_block
-from .swin_transformer.model import SwinTransformer
-from .swin_transformer.model import *
+from utils import modify_tf_block
+from swin_transformer.model import SwinTransformer
+from swin_transformer.model import *
 import numpy as np 
 import os, sys, shutil
 import tqdm 

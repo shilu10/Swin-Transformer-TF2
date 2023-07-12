@@ -17,7 +17,7 @@ from imutils import paths
 
 def port_weights(model_type="swin_tiny_patch4_window7_224", include_top=True):
     print("Intializing the Tensorflow Model")
-    print(list(paths.list_files(".configs/")))
+    print(list(paths.list_files("configs/")))
     f = (glob.glob("configs/*.yaml"))
     
     # read the data from yaml file
@@ -35,13 +35,18 @@ def port_weights(model_type="swin_tiny_patch4_window7_224", include_top=True):
         window_size = data.get('window_size'),
         include_top = include_top
     )
-    print(tf_model)
+
+    img_dim = data.get('img_size')
+    dummy_input = np.zeros((1, img_dim, img_dim, 3))
+    _ = tf_model(dummy_input)
+    print(tf_model.summary())
 
     print('Loading the Pytorch model!!!')
     timm_pt_model = timm.create_model(
         model_name = model_type,
         pretrained = True
     )
+    timm_pt_model.eval()
     huggingface_pt_model = pt_model = SwinModel.from_pretrained(f"microsoft/{model_type.replace('_', '-')}")
 
     # weight dict of huggingface model

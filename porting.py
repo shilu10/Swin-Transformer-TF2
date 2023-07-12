@@ -1,5 +1,6 @@
 from .utils import modify_tf_block
 from .swin_transformer.model import SwinTransformer
+from .swin_transformer.model import *
 import numpy as np 
 import os, sys, shutil
 import tqdm 
@@ -55,7 +56,7 @@ def port_weights(model_type="swin_tiny_patch4_window7_224", include_top=True):
 
     # main norm layer
     tf_model.layers[-2] = modify_tf_block(
-            m.layers[-2],
+            tf_model.layers[-2],
             pt_model_dict["layernorm.weight"],
             pt_model_dict["layernorm.bias"],
 
@@ -88,10 +89,10 @@ def port_weights(model_type="swin_tiny_patch4_window7_224", include_top=True):
 
     # for swin layers
     for i in range(len(data.get("depths"))):
-        swin_layer = m.layers[2 + i]
+        swin_layer = tf_model.layers[2 + i]
         modify_swin_layer(swin_layer, i)
 
-    model_name = model_type if include_top else model_name = model_type + "_fe"
+    model_name = model_type if include_top else model_type + "_fe"
     tf_model.save(model_name)
     print("Tensorflow model serialized successfully at: ", model_name)
 

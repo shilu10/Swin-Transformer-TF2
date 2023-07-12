@@ -17,15 +17,12 @@ from imutils import paths
 
 def port_weights(model_type="swin_tiny_patch4_window7_224", include_top=True):
     print("Intializing the Tensorflow Model")
-    print(list(paths.list_files("configs/")))
-    f = (glob.glob("configs/*.yaml"))
     
     # read the data from yaml file
-    config_file_path = f".configs/{model_type}.yaml"
+    config_file_path = f"configs/{model_type}.yaml"
     with open(config_file_path, "r") as f:
         data = yaml.safe_load(f)
     
-    print(data)
     tf_model = SwinTransformer(
         img_size = data.get("img_size"),
         patch_size = data.get("patch_size"),
@@ -39,7 +36,6 @@ def port_weights(model_type="swin_tiny_patch4_window7_224", include_top=True):
     img_dim = data.get('img_size')
     dummy_input = np.zeros((1, img_dim, img_dim, 3))
     _ = tf_model(dummy_input)
-    print(tf_model.summary())
 
     print('Loading the Pytorch model!!!')
     timm_pt_model = timm.create_model(
@@ -96,14 +92,14 @@ def port_weights(model_type="swin_tiny_patch4_window7_224", include_top=True):
     # for swin layers
     for i in range(len(data.get("depths"))):
         swin_layer = tf_model.layers[2 + i]
-        modify_swin_layer(swin_layer, i)
+        modify_swin_layer(swin_layer, i, pt_model_dict)
 
     model_name = model_type if include_top else model_type + "_fe"
-    tf_model.save(model_name)
-    print("Tensorflow model serialized successfully at: ", model_name)
+    tf_model.save_weights(model_name + ".h5")
+    print("Tensorflow model weights saved successfully at: ", model_name)
 
 
-def modify_swin_layer(swin_layer, swin_layer_indx):
+def modify_swin_layer(swin_layer, swin_layer_indx, pt_model_dict):
 
   for block_indx, block in enumerate(swin_layer.layers):
 

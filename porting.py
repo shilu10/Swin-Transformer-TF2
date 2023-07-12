@@ -12,16 +12,18 @@ import timm, transformers
 from typing import Dict, List
 from transformers import SwinModel
 import yaml 
-
+from imutils import paths
 
 def port_weights(model_type="swin_tiny_patch4_window7_224", include_top=True):
     print("Intializing the Tensorflow Model")
-
+    print(list(paths.list_files(".configs/")))
+    f = (glob.glob("configs/*.yaml"))
     # read the data from yaml file
-    config_file_path = f"configs/{model_type}.yaml"
-    with open(config_file_path, "r") as f:
+    config_file_path = f".configs/{model_type}.yaml"
+    with open(f[0], "r") as f:
         data = yaml.safe_load(f)
-
+    
+    print(data)
     tf_model = SwinTransformer(
         img_size = data.get("img_size"),
         patch_size = data.get("patch_size"),
@@ -31,13 +33,14 @@ def port_weights(model_type="swin_tiny_patch4_window7_224", include_top=True):
         window_size = data.get('window_size'),
         include_top = include_top
     )
+    print(tf_model)
 
     print('Loading the Pytorch model!!!')
     timm_pt_model = timm.create_model(
         model_name = model_type,
         pretrained = True
     )
-    huggingface_pt_model = pt_model = SwinModel.from_pretrained(f"microsoft/{model_type.replace('_', "-")}")
+    huggingface_pt_model = pt_model = SwinModel.from_pretrained(f"microsoft/{model_type.replace('_', '-')}")
 
     # weight dict of huggingface model
     np_state_dict = huggingface_pt_model.state_dict()

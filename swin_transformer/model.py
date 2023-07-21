@@ -4,7 +4,7 @@ from ml_collections import ConfigDict
 from collections import * 
 import collections
 from .blocks import SwinTransformerStage
-from .layers import PatchEmbed
+from .layers import PatchEmbed, norm_layer_factory, act_layer_factory
 from typing import *
 
 

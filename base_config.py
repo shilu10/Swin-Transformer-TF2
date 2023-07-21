@@ -1,7 +1,7 @@
 from ml_collections import ConfigDict 
 from typing import * 
 
-def get_base_config(image_size: int = 224, 
+def get_base_config(input_size: Tuple = (224, 224), 
                     patch_size: int = 4,
                     projection_dim: int = 96,
                     window_size: int = 7,
@@ -15,7 +15,6 @@ def get_base_config(image_size: int = 224,
                 ):
 
     config = ConfigDict() 
-    config.image_size = image_size
     config.patch_size = patch_size
     config.projection_dim = projection_dim
     config.window_size = window_size 
@@ -26,6 +25,9 @@ def get_base_config(image_size: int = 224,
     config.drop_path_rate = drop_path_rate
     config.attn_drop_rate = attn_drop_rate
     config.include_top = include_top
+    config.input_size = input_size
+    config.image_size = config.input_size
+
 
     # common configs
     config.initializer_range = 0.1

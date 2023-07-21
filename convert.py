@@ -18,7 +18,7 @@ from imutils import paths
 from .base_config import get_base_config
 
 
-def port_weights(model_type="swin_tiny_patch4_window7_224", savepath ='.", include_top=True):
+def port_weights(model_type="swin_tiny_patch4_window7_224", model_savepath ='.", include_top=True):
     print("Intializing the Tensorflow Model")
     
     # read the data from yaml file
@@ -84,9 +84,10 @@ def port_weights(model_type="swin_tiny_patch4_window7_224", savepath ='.", inclu
     for indx, stage in enumerate(tf_model.layers[2: len(config.nb_blocks)+2]):
       modify_swin_layer(stage, indx, pt_model_dict)
 
-    model_name = model_type if include_top else model_type + "_fe"
-    tf_model.save(savepath + "/" + model_name)
-    print("Tensorflow model weights saved successfully at: ", model_name)
+    save_path = os.path.join(model_savepath, model_type)
+    save_path = f"{save_path}_fe" if not include_top else save_path
+    tf_model.save(save_path)
+    print(f"TensorFlow model serialized at: {save_path}...")
 
 
 def modify_swin_layer(swin_layer, swin_layer_indx, pt_model_dict):

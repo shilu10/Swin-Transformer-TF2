@@ -34,5 +34,6 @@ def get_base_config(input_size: Tuple = (224, 224),
     config.patch_resolution = (config.image_size[0] // config.patch_size, config.image_size[1] // config.patch_size)
     config.act_layer = 'gelu'
     config.norm_layer = 'layer_norm'
+    config.n_channels = 3
 
     return config.lock()

@@ -6,6 +6,7 @@ from tensorflow.keras.layers import Layer
 from tensorflow.keras.layers import *
 from .factory import act_layer_factory
 from typing import *
+import numpy as np
 
 
 class MLP(tf.keras.layers.Layer):

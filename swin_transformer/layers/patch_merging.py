@@ -4,6 +4,8 @@ from tensorflow.keras import Model
 from tensorflow.keras.layers import *
 from ml_collections import ConfigDict
 from typing import *
+import numpy as np
+
 
 class PatchMerging(tf.keras.layers.Layer):
     """ Patch Merging Layer.

@@ -1,5 +1,6 @@
 from tensorflow import keras 
 import tensorflow as tf 
+import numpy as np
 
 
 def get_initializer(initializer_range: float = 0.02) -> tf.keras.initializers.TruncatedNormal:

@@ -26,18 +26,18 @@ def port_weights(model_type="swin_tiny_patch4_window7_224", include_top=True):
         data = yaml.safe_load(f)
 
     config = get_base_config(
-              input_size=data.get("image_size"),
+              input_size=(data.get("image_size"), data.get("image_size")),
               patch_size=data.get("patch_size"),
-              projection_dim=data.get("projection_dim"),
+              embed_dim=data.get("embed_dim"),
               window_size=data.get("window_size"),
-              depths=data.get("depths"),
-              num_heads=data.get("num_heads"),
+              nb_blocks=data.get("nb_blocks"),
+              nb_heads=data.get("nb_heads"),
               include_top=include_top
         )
     
     tf_model = SwinTransformer(config)
 
-    img_dim = data.get('image_size')[0]
+    img_dim = data.get('image_size')
     dummy_input = np.zeros((1, img_dim, img_dim, 3))
     _ = tf_model(dummy_input)
 

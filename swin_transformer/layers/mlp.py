@@ -4,40 +4,45 @@ import numpy as np
 from tensorflow.keras import Model 
 from tensorflow.keras.layers import Layer 
 from tensorflow.keras.layers import *
+from .factory import act_layer_factory
 
 
 class MLP(tf.keras.layers.Layer):
-    """
-        this class is a implementation of the mlp block described in the swin transformer paper, which contains 
-        2 fully connected layer with GelU activation.
-    """
-    def __init__(self, in_features, hidden_features=None, out_features=None, drop=0.):
-        """
-            Params:
-                input_neurons(dtype: int)   : input dimension for the mlp block, it needed only for .summary() method.
-                input_dims(dtype: int)  : number of neurons in the hidden
-                                              layer(fully connected layer).
-                output_neurons(dtype: iny)  ; number of neurons in the last
-                                              layer(fully connected layer) of mlp.
-                act_type(type: str)         ; type of activation needed. in paper, GeLU is used.
-                dropout_rate(dtype: float)  : dropout rate in the dropout layer.
-                prefix(type: str)           : used for the naming the layers.
-        """
-        super(MLP, self).__init__()
-        out_features = out_features or in_features
-        hidden_features = hidden_features or in_features
-        self.fc1 = Dense(hidden_features, name=f'mlp/fc1')
-        self.fc2 = Dense(out_features, name=f'mlp/fc2')
-        self.drop = Dropout(drop)
+    """MLP as used in Vision Transformer, MLP-Mixer and related networks"""
 
-    def call(self, x):
+    def __init__(
+        self,
+        hidden_dim: int,
+        projection_dim: int,
+        drop_rate: float,
+        act_layer: str,
+        kernel_initializer: str = "glorot_uniform",
+        bias_initializer: str = "zeros",
+        **kwargs,
+    ):
+        super(MLP, self).__init__(**kwargs)
+        act_layer = act_layer_factory(act_layer)
+
+        self.fc1 = tf.keras.layers.Dense(
+            units=hidden_dim,
+            kernel_initializer=kernel_initializer,
+            bias_initializer=bias_initializer,
+            name="fc1",
+        )
+        self.act = act_layer()
+        self.drop1 = tf.keras.layers.Dropout(rate=drop_rate)
+        self.fc2 = tf.keras.layers.Dense(
+            units=projection_dim,
+            kernel_initializer=kernel_initializer,
+            bias_initializer=bias_initializer,
+            name="fc2",
+        )
+        self.drop2 = tf.keras.layers.Dropout(rate=drop_rate)
+
+    def call(self, x, training=False):
         x = self.fc1(x)
-        x = tf.keras.activations.gelu(x)
-        x = self.drop(x)
+        x = self.act(x)
+        x = self.drop1(x, training=training)
         x = self.fc2(x)
-        x = self.drop(x)
+        x = self.drop2(x, training=training)
         return x
-
-    def summary(self): 
-        inputs = Input(shape=self.input_dims)
-        return keras.Model(inputs=inputs, outputs=self.call(inputs))

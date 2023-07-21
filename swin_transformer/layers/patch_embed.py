@@ -2,45 +2,58 @@ from tensorflow import keras
 import tensorflow as tf 
 from tensorflow.keras import Model 
 from tensorflow.keras.layers import *
-
-
+from .utils import get_initializer
+from .factory import act_layer_factory, norm_layer_factory
+from collections import * 
+import collections
 
 class PatchEmbed(keras.layers.Layer):
-    """ Image to Patch Embedding
-    Args:
-        img_size (int): Image size.  Default: 224.
-        patch_size (int): Patch token size. Default: 4.
-        in_chans (int): Number of input image channels. Default: 3.
-        embed_dim (int): Number of linear projection output channels. Default: 96.
-        norm_layer (nn.Module, optional): Normalization layer. Default: None
     """
-    def __init__(self, img_size=(224, 224), patch_size=(4, 4), in_chans=3, embed_dim=96, norm_layer=None):
-        super().__init__()
-        self.img_size = (img_size)
-        self.patch_size = (patch_size)
-        patches_resolution = [img_size[0] // patch_size[0], img_size[1] // patch_size[1]]
-        self.img_size = img_size
+    This class turns `pixel_values` of shape `(batch_size, num_channels, height, width)` into the initial
+    `hidden_states` (patch embeddings) of shape `(batch_size, seq_length, hidden_size)` to be consumed by a
+    Transformer.
+    """
+    def __init__(self, config: ConfigDict, **kwargs):
+        super(PatchEmbed, self).__init__(**kwargs)
+        image_size = config.image_size
+        patch_size = config.patch_size
+        projection_dim = config.projection_dim
+        n_channels = config.n_channels
+
+        image_size = image_size if isinstance(image_size, collections.abc.Iterable) else (image_size, image_size)
+        patch_size = patch_size if isinstance(patch_size, collections.abc.Iterable) else (patch_size, patch_size)
+        num_patches = ((image_size[0] // patch_size[0]) * (image_size[1] // patch_size[1]))
+        act_layer = norm_layer_factory(config.norm_layer)
+        # calculation of num of patches
+        self.num_patches = num_patches
+        self.config = config
+        self.image_size = image_size
+        self.n_channels = n_channels
+        self.projection_dim = projection_dim
         self.patch_size = patch_size
-        self.patches_resolution = patches_resolution
-        self.num_patches = patches_resolution[0] * patches_resolution[1]
 
-        self.in_chans = in_chans
-        self.embed_dim = embed_dim
+        # patch generator
+        self.projection = tf.keras.layers.Conv2D(
+            kernel_size=patch_size,
+            strides=patch_size,
+            data_format="channels_last",
+            filters=projection_dim,
+            padding="valid",
+            use_bias=True,
+            kernel_initializer=get_initializer(self.config.initializer_range),
+            bias_initializer="zeros",
+            name="projection"
+        )
 
-        self.proj = Conv2D(filters=embed_dim,
-                           kernel_size=patch_size,
-                           strides=patch_size
-                          )
-        if norm_layer is not None:
-            self.norm = norm_layer(epsilon=1e-5, name='norm')
-        else:
-            self.norm = None
-            
-    def call(self, x):
-        B, H, W, C = tf.shape(x)[0], tf.shape(x)[1], tf.shape(x)[2], tf.shape(x)[3]
-      
-        x = self.proj(x)
-        x = tf.reshape(x, shape=[-1, (H // self.patch_size[0]) * (W // self.patch_size[0]), self.embed_dim])
-        if self.norm is not None:
-            x = self.norm(x)
-        return x
+        self.norm = act_layer()
+
+    def call(self, x: tf.Tensor, training: bool = False) -> tf.Tensor:
+        shape = tf.shape(x)
+        batch_size, height, width, n_channel = shape[0], shape[1], shape[2], shape[3]
+
+        projection = self.projection(x)
+        embeddings = tf.reshape(tensor=projection, shape=(batch_size, self.num_patches, -1))
+
+        embeddings = self.norm(embeddings)
+
+        return embeddings

@@ -5,6 +5,7 @@ from collections import *
 import collections
 from .blocks import SwinTransformerStage
 from .layers import PatchEmbed
+from typing import *
 
 
 class SwinTransformer(tf.keras.Model):

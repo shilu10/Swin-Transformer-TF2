@@ -3,7 +3,7 @@ import tensorflow as tf
 from tensorflow.keras.layers import * 
 from tensorflow.keras import Model 
 from ..layers import DropPath, WindowAttention
-from utils import window_partition, window_reverse
+from .utils import window_partition, window_reverse
 from ..layers import MLP
 from ml_collections import ConfigDict
 from ..layers import norm_layer_factory

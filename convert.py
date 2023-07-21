@@ -1,6 +1,7 @@
 from utils import modify_tf_block
 from swin_transformer.model import SwinTransformer
-from swin_transformer.model import *
+from swin_transformer.layers import *
+from swin_transformer.blocks import *
 import numpy as np 
 import os, sys, shutil
 import tqdm 
@@ -11,9 +12,10 @@ import tensorflow.keras as keras
 import argparse
 import timm, transformers 
 from typing import Dict, List
-from transformers import SwinModel
+from transformers import SwinModel, SwinForImageClassification
 import yaml 
 from imutils import paths
+
 
 def port_weights(model_type="swin_tiny_patch4_window7_224", include_top=True):
     print("Intializing the Tensorflow Model")

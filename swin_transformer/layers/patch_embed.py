@@ -8,6 +8,7 @@ from collections import *
 import collections
 from ml_collections import ConfigDict
 from typing import *
+import numpy as np
 
 
 class PatchEmbed(keras.layers.Layer):

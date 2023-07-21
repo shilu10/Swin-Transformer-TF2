@@ -6,6 +6,7 @@ import collections
 from .blocks import SwinTransformerStage
 from .layers import PatchEmbed, norm_layer_factory, act_layer_factory
 from typing import *
+import numpy as np
 
 
 class SwinTransformer(tf.keras.Model):

@@ -16,7 +16,7 @@ def get_base_config(input_size: Tuple = (224, 224),
 
     config = ConfigDict() 
     config.patch_size = patch_size
-    config.projection_dim = projection_dim
+    config.embed_dim = embed_dim
     config.window_size = window_size 
     config.nb_blocks = nb_blocks
     config.nb_heads = nb_heads
@@ -28,7 +28,7 @@ def get_base_config(input_size: Tuple = (224, 224),
     config.input_size = input_size
     config.image_size = config.input_size
 
-    
+
     # common configs
     config.initializer_range = 0.1
     config.patch_resolution = (config.image_size[0] // config.patch_size, config.image_size[1] // config.patch_size)

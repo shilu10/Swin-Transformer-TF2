@@ -35,5 +35,6 @@ def get_base_config(input_size: Tuple = (224, 224),
     config.act_layer = 'gelu'
     config.norm_layer = 'layer_norm'
     config.n_channels = 3
+    config.qkv_bias = True
 
     return config.lock()

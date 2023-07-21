@@ -5,7 +5,7 @@ from tensorflow.keras.layers import *
 from ml_collections import ConfigDict
 from typing import *
 import numpy as np
-
+from .factory import act_layer_factory, norm_layer_factory
 
 class PatchMerging(tf.keras.layers.Layer):
     """ Patch Merging Layer.

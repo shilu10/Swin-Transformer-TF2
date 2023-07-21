@@ -6,6 +6,7 @@ from .swin_transformer_block import SwinTransformerBlock
 from ml_collections import ConfigDict
 from ..layers import PatchMerging
 from typing import *
+import numpy as np
 
 
 class SwinTransformerStage(tf.keras.Model):

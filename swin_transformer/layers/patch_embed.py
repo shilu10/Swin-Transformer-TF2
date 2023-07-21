@@ -6,6 +6,8 @@ from .utils import get_initializer
 from .factory import act_layer_factory, norm_layer_factory
 from collections import * 
 import collections
+from ml_collections import ConfigDict
+
 
 class PatchEmbed(keras.layers.Layer):
     """

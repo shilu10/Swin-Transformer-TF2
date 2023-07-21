@@ -85,7 +85,7 @@ def port_weights(model_type="swin_tiny_patch4_window7_224", include_top=True):
       modify_swin_layer(stage, indx, pt_model_dict)
 
     model_name = model_type if include_top else model_type + "_fe"
-    tf_model.save_weights(model_name + ".h5")
+    tf_model.save_weights(model_name)
     print("Tensorflow model weights saved successfully at: ", model_name)
 
 

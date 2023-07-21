@@ -3,7 +3,7 @@ import tensorflow as tf
 from tensorflow.keras import Model 
 from tensorflow.keras.layers import *
 from ml_collections import ConfigDict
-
+from typing import *
 
 class PatchMerging(tf.keras.layers.Layer):
     """ Patch Merging Layer.

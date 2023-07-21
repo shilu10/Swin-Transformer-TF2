@@ -5,6 +5,7 @@ from tensorflow.keras import Model
 from .swin_transformer_block import SwinTransformerBlock
 from ml_collections import ConfigDict
 from ..layers import PatchMerging
+from typing import *
 
 
 class SwinTransformerStage(tf.keras.Model):

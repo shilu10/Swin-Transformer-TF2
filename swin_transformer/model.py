@@ -4,7 +4,7 @@ from ml_collections import ConfigDict
 from collections import * 
 import collections
 from .blocks import SwinTransformerStage
-from .layer import PatchEmbed
+from .layers import PatchEmbed
 
 
 class SwinTransformer(tf.keras.Model):

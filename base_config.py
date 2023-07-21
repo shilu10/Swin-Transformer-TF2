@@ -27,7 +27,7 @@ def get_base_config(input_size: Tuple = (224, 224),
     config.include_top = include_top
     config.input_size = input_size
     config.image_size = config.input_size
-
+    config.projection_dim = embed_dim
 
     # common configs
     config.initializer_range = 0.1

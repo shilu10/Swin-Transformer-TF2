@@ -7,6 +7,7 @@ from .factory import act_layer_factory, norm_layer_factory
 from collections import * 
 import collections
 from ml_collections import ConfigDict
+from typing import *
 
 
 class PatchEmbed(keras.layers.Layer):

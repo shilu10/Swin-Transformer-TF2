@@ -1,6 +1,7 @@
 from tensorflow import keras 
 import tensorflow as tf 
 import numpy as np 
+from typing import *
 
 
 class DropPath(tf.keras.layers.Layer):

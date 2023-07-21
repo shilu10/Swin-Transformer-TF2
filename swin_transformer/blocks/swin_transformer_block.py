@@ -7,6 +7,7 @@ from utils import window_partition, window_reverse
 from ..layers import MLP
 from ml_collections import ConfigDict
 from ..layers import norm_layer_factory
+from typing import *
 
 
 class SwinTransformerBlock(tf.keras.layers.Layer):

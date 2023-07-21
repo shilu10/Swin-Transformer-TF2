@@ -36,5 +36,6 @@ def get_base_config(input_size: Tuple = (224, 224),
     config.norm_layer = 'layer_norm'
     config.n_channels = 3
     config.qkv_bias = True
-
+    config.mlp_ratio = 4.0
+    
     return config.lock()

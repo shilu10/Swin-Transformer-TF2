@@ -18,7 +18,11 @@ from imutils import paths
 from .base_config import get_base_config
 
 
-def port_weights(model_type="swin_tiny_patch4_window7_224", model_savepath ='.", include_top=True):
+def port_weights(model_type="swin_tiny_patch4_window7_224", 
+                model_savepath =".", 
+                include_top=True
+              ):
+              
     print("Intializing the Tensorflow Model")
     
     # read the data from yaml file

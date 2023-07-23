@@ -22,7 +22,7 @@ def port_weights(model_type="swin_tiny_patch4_window7_224",
                 model_savepath =".", 
                 include_top=True
               ):
-              
+
     print("Intializing the Tensorflow Model")
     
     # read the data from yaml file
@@ -47,7 +47,7 @@ def port_weights(model_type="swin_tiny_patch4_window7_224",
     _ = tf_model(dummy_input)
 
     print('Loading the Pytorch model!!!')
-    pt_model = SwinForImageClassification.from_pretrained(f"microsoft/swin-base-patch4-window7-224")
+    pt_model = SwinForImageClassification.from_pretrained(f"microsoft/{model_type.replace('_', '-')}")
     pt_model.eval()
 
     # pt_model_dict

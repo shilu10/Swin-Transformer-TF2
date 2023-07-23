@@ -18,7 +18,8 @@ def main():
                 print(f"Processing the  model type: {model_type}")
 
                 port_weights(
-                    model_type=model_type
+                    model_type=model_type,
+                    save_path='models/',
                     include_top=True
                 )    
             

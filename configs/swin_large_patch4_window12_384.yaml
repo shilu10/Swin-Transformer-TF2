@@ -2,6 +2,6 @@ model_type: swin_large_patch4_window12_384
 image_size: 384
 patch_size: 4
 window_size: 12
-embed_dim: 128
+embed_dim: 192
 nb_blocks: [2, 2, 18, 2]
 nb_heads: [6, 12, 24, 48]

@@ -7,7 +7,7 @@ from imutils import paths
 from .convert import port_weights
 
 # all config files 
-def main():
+def main(model_savepath="models/"):
 
     try:
         config_file_paths = list(paths.list_files("configs/"))
@@ -19,7 +19,7 @@ def main():
 
                 port_weights(
                     model_type=model_type,
-                    save_path='models/',
+                    model_savepath=model_savepath,
                     include_top=True
                 )    
             

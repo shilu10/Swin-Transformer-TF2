@@ -16,7 +16,7 @@ from transformers import SwinModel, SwinForImageClassification
 import yaml 
 from imutils import paths
 from .base_config import get_base_config
-
+import torch
 
 def port_weights(model_type="swin_tiny_patch4_window7_224", 
                 model_savepath =".", 

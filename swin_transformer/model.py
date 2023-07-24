@@ -23,7 +23,7 @@ class SwinTransformer(tf.keras.Model):
            config,
            name="patch_embedding"
         )
-        patch_resolution = self.patch_embed.patch_resolution
+        patch_resolution = self.patch_embed.patches_resolution
         self.patch_resolution = patch_resolution
 
         self.drop = tf.keras.layers.Dropout(config.drop_rate)

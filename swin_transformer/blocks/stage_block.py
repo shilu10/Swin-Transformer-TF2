@@ -72,6 +72,6 @@ class SwinTransformerStage(tf.keras.Model):
         flops = 0
         for blk in self.blocks:
             flops += blk.flops()
-        if self.downsample is not None or isinstance(self.downsample, tf.keras.layers.Activation):
+        if self.downsample is not None and not isinstance(self.downsample, tf.keras.layers.Activation):
             flops += self.downsample.flops()
         return flops

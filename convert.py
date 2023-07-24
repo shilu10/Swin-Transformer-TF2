@@ -57,7 +57,7 @@ def port_weights(model_type="swin_tiny_patch4_window7_224",
     nb_flops = int(convert_kb_to_gb(nb_flops))
 
     nb_params = tf_model.count_params()
-    nb_params = nb_params / 1000000
+    nb_params = int(nb_params / 1000000)
 
     add_model_res('model_main_result.csv', model_type, nb_params, nb_flops)
 

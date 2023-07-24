@@ -102,3 +102,16 @@ class WindowAttention(tf.keras.layers.Layer):
         config["embed_dim"] = self.embed_dim
 
         return config
+
+    def flops(self, N):
+        # calculate flops for 1 window with token length of N
+        flops = 0
+        # qkv = self.qkv(x)
+        flops += N * self.embed_dim * 3 * self.embed_dim
+        # attn = (q @ k.transpose(-2, -1))
+        flops += self.nb_heads * N * (self.embed_dim // self.nb_heads) * N
+        #  x = (attn @ v)
+        flops += self.nb_heads * N * N * (self.embed_dim // self.nb_heads)
+        # x = self.proj(x)
+        flops += N * self.embed_dim * self.embed_dim
+        return flops

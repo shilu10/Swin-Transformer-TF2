@@ -29,6 +29,8 @@ class SwinTransformerBlock(tf.keras.layers.Layer):
         self.norm_layer = norm_layer_factory(config.norm_layer)
         self.window_size = config.window_size
 
+        self.embed_dim = embed_dim
+
         # If the image resolution is smaller than the window size, there is no point
         # shifting windows, since we already capture the global context in that case.
         if min(self.input_size) <= self.window_size:
@@ -144,4 +146,20 @@ class SwinTransformerBlock(tf.keras.layers.Layer):
         config["input_size"] = self.input_size
         config["shift_size"] = self.shift_size
         config["window_size"] = self.window_size
+        config["embed_dim"] = self.embed_dim
+        config["config"] = self.config # added config
         return config
+
+    def flops(self):
+        flops = 0
+        H, W = self.input_size
+        # norm1
+        flops += self.embed_dim * H * W
+        # W-MSA/SW-MSA
+        nW = H * W / self.window_size / self.window_size
+        flops += nW * self.attn.flops(self.window_size * self.window_size)
+        # mlp
+        flops += 2 * H * W * self.embed_dim * self.embed_dim * self.config.mlp_ratio
+        # norm2
+        flops += self.embed_dim * H * W
+        return flops

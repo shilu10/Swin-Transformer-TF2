@@ -53,6 +53,12 @@ class PatchMerging(tf.keras.layers.Layer):
 
         return config
 
+    def flops(self):
+        H, W = self.input_size
+        flops = H * W * self.config.embed_dim
+        flops += (H // 2) * (W // 2) * 4 * self.config.embed_dim * 2 * self.config.embed_dim
+        return flops
+
 
 
     

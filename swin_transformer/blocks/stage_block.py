@@ -66,3 +66,11 @@ class SwinTransformerStage(tf.keras.Model):
         config["nb_heads"] = self.nb_heads
         config["drop_path_rate"] = self.drop_path_rate
         return config
+
+    def flops(self):
+        flops = 0
+        for blk in self.blocks:
+            flops += blk.flops()
+        if self.downsample is not None:
+            flops += self.downsample.flops()
+        return flops

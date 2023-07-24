@@ -53,6 +53,7 @@ def port_weights(model_type="swin_tiny_patch4_window7_224",
     # pt_model_dict
     url = model_url[model_type]
     pt_model_dict = torch.hub.load_state_dict_from_url(url, map_location = "cpu", progress = True, check_hash = True)
+    pt_model_dict = pt_model_dict.get("model")
     pt_model_dict = {k: np.array(pt_model_dict[k]) for k in pt_model_dict.keys()}
 
     # main norm

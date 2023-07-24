@@ -41,6 +41,7 @@ class SwinTransformerStage(tf.keras.Model):
             )
             for idx in range(nb_blocks)
         ]
+
         if downsample:
             self.downsample = PatchMerging(
                 config=config, input_size=input_size, embed_dim=embed_dim, name="downsample"
@@ -69,7 +70,9 @@ class SwinTransformerStage(tf.keras.Model):
 
     def flops(self):
         flops = 0
+        print(self.blocks)
         for blk in self.blocks:
+            print(blk.flops())
             flops += blk.flops()
         if self.downsample is not None:
             flops += self.downsample.flops()

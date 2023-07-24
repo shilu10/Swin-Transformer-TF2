@@ -38,7 +38,8 @@ def port_weights(model_type="swin_tiny_patch4_window7_224",
               window_size=data.get("window_size"),
               nb_blocks=data.get("nb_blocks"),
               nb_heads=data.get("nb_heads"),
-              include_top=include_top
+              include_top=include_top,
+              nb_classes=data.get("nb_classes", 1000)
         )
     
     tf_model = SwinTransformer(config)

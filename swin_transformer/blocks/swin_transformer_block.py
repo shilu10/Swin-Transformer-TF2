@@ -147,7 +147,6 @@ class SwinTransformerBlock(tf.keras.layers.Layer):
         config["shift_size"] = self.shift_size
         config["window_size"] = self.window_size
         config["embed_dim"] = self.embed_dim
-        config["config"] = self.config # added config
         return config
 
     def flops(self):

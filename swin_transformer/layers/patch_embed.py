@@ -28,6 +28,10 @@ class PatchEmbed(keras.layers.Layer):
         patch_size = patch_size if isinstance(patch_size, collections.abc.Iterable) else (patch_size, patch_size)
         num_patches = ((image_size[0] // patch_size[0]) * (image_size[1] // patch_size[1]))
         act_layer = norm_layer_factory(config.norm_layer)
+
+        patches_resolution = [image_size[0] // patch_size[0], image_size[1] // patch_size[1]]
+        self.patches_resolution = patches_resolution
+
         # calculation of num of patches
         self.num_patches = num_patches
         self.config = config
@@ -69,3 +73,9 @@ class PatchEmbed(keras.layers.Layer):
         config["patch_size"] = self.patch_size
         config["n_channels"] = self.n_channels
         return config
+
+    def flops(self):
+        Ho, Wo = self.patches_resolution
+        flops = Ho * Wo * self.config.embed_dim * self.n_channels * (self.patch_size[0] * self.patch_size[1])
+        
+        return flops

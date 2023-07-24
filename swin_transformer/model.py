@@ -16,11 +16,16 @@ class SwinTransformer(tf.keras.Model):
         self.config = config
         self.norm_layer = norm_layer_factory(config.norm_layer)
 
+        self.num_features = int(config.embed_dim * 2 ** (len(self.nb_blocks) - 1))
+
         # Split image into non-overlapping patches
         self.patch_embed = PatchEmbed(
            config,
            name="patch_embedding"
         )
+        patch_resolution = self.patch_embed.patch_resolution
+        self.patch_resolution = patch_resolution
+
         self.drop = tf.keras.layers.Dropout(config.drop_rate)
 
         # Stochastic depth
@@ -112,5 +117,14 @@ class SwinTransformer(tf.keras.Model):
 
     def get_config(self):
         config = super(SwinTransformer, self).get_config()
-
+        config["num_features"] = self.num_features
         return config
+
+    def flops(self):
+        flops = 0
+        flops += self.patch_embed.flops()
+        for i, stage in enumerate(self.stages):
+            flops += stage.flops()
+        flops += self.num_features * self.patch_resolution[0] * self.patch_resolution[1] // (2 ** self.num_layers)
+        flops += self.num_features * self.nb_classes
+        return flop

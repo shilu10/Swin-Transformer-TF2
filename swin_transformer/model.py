@@ -125,6 +125,6 @@ class SwinTransformer(tf.keras.Model):
         flops += self.patch_embed.flops()
         for i, stage in enumerate(self.stages):
             flops += stage.flops()
-        flops += self.num_features * self.patch_resolution[0] * self.patch_resolution[1] // (2 ** self.num_layers)
+        flops += self.num_features * self.patch_resolution[0] * self.patch_resolution[1] // (2 ** len(self.config.nb_blocks))
         flops += self.num_features * self.nb_classes
         return flop

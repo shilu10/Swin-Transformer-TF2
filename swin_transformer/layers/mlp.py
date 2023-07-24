@@ -23,6 +23,12 @@ class MLP(tf.keras.layers.Layer):
         **kwargs,
     ):
         super(MLP, self).__init__(**kwargs)
+        self.hidden_dim = hidden_dim 
+        self.projection_dim = projection_dim 
+        self.drop_rate = drop_rate
+        self.kernel_initializer = kernel_initializer
+        self.bias_initializer = bias_initializer
+
         act_layer = act_layer_factory(act_layer)
 
         self.fc1 = tf.keras.layers.Dense(
@@ -48,3 +54,12 @@ class MLP(tf.keras.layers.Layer):
         x = self.fc2(x)
         x = self.drop2(x, training=training)
         return x
+
+    def get_config(self):
+        config = super(MLP, self).get_config()
+        config["hidden_dim"] = self.hidden_dim
+        config["projection_dim"] = self.projection_dim
+        config["drop_rate"] = self.drop_rate
+        config["kernel_initializer"] = self.kernel_initializer
+        config["bias_initializer"] = self.bias_initializer
+        return config

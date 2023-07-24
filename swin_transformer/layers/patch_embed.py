@@ -61,3 +61,11 @@ class PatchEmbed(keras.layers.Layer):
         embeddings = self.norm(embeddings)
 
         return embeddings
+
+    def get_config(self):
+        config = super(PatchEmbed, self).get_config()
+        config["image_size"] = self.image_size
+        config["projection_dim"] = self.projection_dim
+        config["patch_size"] = self.patch_size
+        config["n_channels"] = self.n_channels
+        return config

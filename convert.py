@@ -18,6 +18,7 @@ from imutils import paths
 from .base_config import get_base_config
 import torch
 
+
 def port_weights(model_type="swin_tiny_patch4_window7_224", 
                 model_savepath =".", 
                 include_top=True
@@ -99,8 +100,6 @@ def port_weights(model_type="swin_tiny_patch4_window7_224",
 def modify_swin_layer(swin_layer, swin_layer_indx, pt_model_dict):
 
   for block_indx, block in enumerate(swin_layer.layers):
-    print(isinstance(block,SwinTransformerBlock), block)
-
     # layer and block combined name
     pt_block_name = f"layers.{swin_layer_indx}.blocks.{block_indx}"
 
@@ -136,7 +135,6 @@ def modify_swin_layer(swin_layer, swin_layer_indx, pt_model_dict):
         )
 
       # window attn
-
       block.attn.relative_position_bias_table = modify_tf_block(
           block.attn.relative_position_bias_table,
           (pt_model_dict[pt_block_name + ".attn.relative_position_bias_table"]),
@@ -149,8 +147,6 @@ def modify_swin_layer(swin_layer, swin_layer_indx, pt_model_dict):
         )
 
       # qkv matrix
-
-
       block.attn.qkv = modify_tf_block(
           block.attn.qkv,
           pt_model_dict[pt_block_name + ".attn.qkv.weight"],

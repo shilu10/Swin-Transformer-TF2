@@ -32,3 +32,8 @@ class DropPath(tf.keras.layers.Layer):
         # Rescale output to preserve batch statistics
         x = tf.math.divide(x, self.keep_prob) * binary_tensor
         return x
+
+    def get_config(self):
+        config = super(DropPath, self).get_config()
+        config["drop_prob"] = self.drop_prob
+        return config

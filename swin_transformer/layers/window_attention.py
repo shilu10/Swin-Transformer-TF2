@@ -98,7 +98,7 @@ class WindowAttention(tf.keras.layers.Layer):
 
     def get_config(self):
         config = super(WindowAttention, self).get_config()
-        config["nb_heads"] = nb_heads
-        config["embed_dim"] = embed_dim
+        config["nb_heads"] = self.nb_heads
+        config["embed_dim"] = self.embed_dim
 
         return config

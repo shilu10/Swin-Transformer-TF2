@@ -109,3 +109,8 @@ class SwinTransformer(tf.keras.Model):
         x = self.head(x)
         features["logits"] = x
         return (x, features) if return_features else x
+
+    def get_config(self):
+        config = super(SwinTransformer, self).get_config()
+
+        return config

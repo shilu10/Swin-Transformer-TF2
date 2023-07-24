@@ -1,4 +1,4 @@
-model_type: swin_large_patch4_window12_384
+model_type: swin_large_patch4_window12_384_22kto1k
 image_size: 384
 patch_size: 4
 window_size: 12

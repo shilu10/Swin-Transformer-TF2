@@ -1,0 +1,7 @@
+model_type: swin_base_patch4_window7_224_22kto1k
+image_size: 224
+patch_size: 4
+window_size: 7
+embed_dim: 128
+nb_blocks: [2, 2, 18, 2]
+nb_heads: [4, 8, 16, 32]

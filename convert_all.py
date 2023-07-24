@@ -12,8 +12,11 @@ all_model_types = [
     'swin_small_patch4_window7_224',
     'swin_base_patch4_window7_224',
     'swin_base_patch4_window12_384',
-    'swin_large_patch4_window7_224',
-    'swin_large_patch4_window12_384'
+    'swin_large_patch4_window7_224_22kto1k',
+    'swin_large_patch4_window12_384_22kto1k',
+    'swin_small_patch4_window7_224_22kto1k',
+    'swin_base_patch4_window7_224_22kto1k',
+    'swin_base_patch4_window12_384_22kto1k'
 ]
 
 def main(model_savepath="models/"):

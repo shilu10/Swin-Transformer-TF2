@@ -47,6 +47,12 @@ class PatchMerging(tf.keras.layers.Layer):
         x = self.reduction(x)
         return x
 
+    def get_config(self):
+        config = super(PatchMerging, self).get_config()
+        config["input_size"] = self.input_size
+
+        return config
+
 
 
     

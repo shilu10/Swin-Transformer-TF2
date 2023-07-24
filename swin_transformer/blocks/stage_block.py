@@ -23,6 +23,11 @@ class SwinTransformerStage(tf.keras.Model):
     ):
         super().__init__(**kwargs)
         self.config = config
+        self.input_size = input_size
+        self.embed_dim = embed_dim
+        self.nb_blocks = nb_blocks 
+        self.nb_heads = nb_heads
+        self.drop_path_rate = drop_path_rate
 
         self.blocks = [
             SwinTransformerBlock(
@@ -52,3 +57,12 @@ class SwinTransformerStage(tf.keras.Model):
         x = self.downsample(x, training=training)
         features["features"] = x
         return (x, features) if return_features else x
+
+    def get_config(self):
+        config = super(SwinTransformerStage, self).get_config()
+        config["input_size"] = self.input_size
+        config["embed_dim"] = self.embed_dim
+        config["nb_blocks"] = self.nb_blocks
+        config["nb_heads"] = self.nb_heads
+        config["drop_path_rate"] = self.drop_path_rate
+        return config

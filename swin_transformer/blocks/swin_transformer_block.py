@@ -138,3 +138,10 @@ class SwinTransformerBlock(tf.keras.layers.Layer):
         x = x + shortcut
 
         return x
+
+    def get_config(self):
+        config = super(SwinTransformerBlock, self).get_config()
+        config["input_size"] = self.input_size
+        config["shift_size"] = self.shift_size
+        config["window_size"] = self.window_size
+        return config

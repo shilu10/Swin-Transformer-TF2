@@ -53,13 +53,13 @@ def port_weights(model_type="swin_tiny_patch4_window7_224",
       make_model_res_file("model_main_result.csv")
 
     # calculating the flops and nb_params
-    nb_flops = model.flops()
+    nb_flops = tf_model.flops()
     nb_flops = convert_kb_to_gb(nb_flops)
 
-    nb_params = model.count_params()
+    nb_params = tf_model.count_params()
     nb_params = convert_kb_to_gb(nb_params)
 
-    add_model_res('model_main_result.csv', model.name, nb_params, nb_flops)
+    add_model_res('model_main_result.csv', model_type, nb_params, nb_flops)
 
     """
     print('Loading the Pytorch model!!!')

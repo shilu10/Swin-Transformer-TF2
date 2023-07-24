@@ -54,10 +54,10 @@ def port_weights(model_type="swin_tiny_patch4_window7_224",
 
     # calculating the flops and nb_params
     nb_flops = tf_model.flops()
-    nb_flops = convert_kb_to_gb(nb_flops)
+    nb_flops = int(convert_kb_to_gb(nb_flops))
 
     nb_params = tf_model.count_params()
-    nb_params = convert_kb_to_gb(nb_params)
+    nb_params = nb_params / 1000000
 
     add_model_res('model_main_result.csv', model_type, nb_params, nb_flops)
 
@@ -210,7 +210,7 @@ def make_model_res_file(fpath):
 
 def add_model_res(fpath, model_variant, params, FLOPs):
   with open(fpath, "a") as file:
-    file.write(f"{model_variant}, {params}, {FLOPs}\n")
+    file.write(f"{model_variant}, {params}M, {FLOPs}G\n")
 
 
 def convert_kb_to_gb(val):

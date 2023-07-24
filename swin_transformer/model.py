@@ -16,7 +16,7 @@ class SwinTransformer(tf.keras.Model):
         self.config = config
         self.norm_layer = norm_layer_factory(config.norm_layer)
 
-        self.num_features = int(config.embed_dim * 2 ** (len(self.nb_blocks) - 1))
+        self.num_features = int(config.embed_dim * 2 ** (len(config.nb_blocks) - 1))
 
         # Split image into non-overlapping patches
         self.patch_embed = PatchEmbed(

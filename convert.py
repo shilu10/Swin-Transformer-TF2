@@ -48,6 +48,20 @@ def port_weights(model_type="swin_tiny_patch4_window7_224",
     dummy_input = np.zeros((1, img_dim, img_dim, 3))
     _ = tf_model(dummy_input)
 
+    # path not exists 
+    if not os.path.exists('model_main_result.csv'):
+      make_model_res_file("model_main_result.csv")
+
+    # calculating the flops and nb_params
+    nb_flops = model.flops()
+    nb_flops = convert_kb_to_gb(nb_flops)
+
+    nb_params = model.count_params()
+    nb_params = convert_kb_to_gb(nb_params)
+
+    add_model_res('model_main_result.csv', model.name, nb_params, nb_flops)
+
+    """
     print('Loading the Pytorch model!!!')
     #pt_model = SwinForImageClassification.from_pretrained(f"microsoft/{model_type.replace('_', '-')}")
     #pt_model.eval()
@@ -91,10 +105,11 @@ def port_weights(model_type="swin_tiny_patch4_window7_224",
     # for swin layers
     for indx, stage in enumerate(tf_model.layers[2: len(config.nb_blocks)+2]):
       modify_swin_layer(stage, indx, pt_model_dict)
-
+    
     save_path = os.path.join(model_savepath, model_type)
     save_path = f"{save_path}_fe" if not include_top else save_path
     tf_model.save(save_path)
+    """
     print(f"TensorFlow model serialized at: {save_path}...")
 
 
@@ -187,3 +202,17 @@ model_url = {
   "swin_large_patch4_window12_384_22kto1k": "https://github.com/SwinTransformer/storage/releases/download/v1.0.0/swin_large_patch4_window12_384_22kto1k.pth"
   
 }
+
+def make_model_res_file(fpath):
+  with open(fpath, "w") as file:
+    file.write("model_variant, #params, FLOPs\n")
+
+
+def add_model_res(fpath, model_variant, params, FLOPs):
+  with open(fpath, "a") as file:
+    file.write(f"{model_variant}, {params}, {FLOPs}\n")
+
+
+def convert_kb_to_gb(val):
+  gb_val = val / 1000 / 1000 / 1000
+  return gb_val

@@ -110,7 +110,7 @@ def port_weights(model_type="swin_tiny_patch4_window7_224",
     save_path = f"{save_path}_fe" if not include_top else save_path
     tf_model.save(save_path)
     """
-    print(f"TensorFlow model serialized at: {save_path}...")
+    #print(f"TensorFlow model serialized at: {save_path}...")
 
 
 def modify_swin_layer(swin_layer, swin_layer_indx, pt_model_dict):

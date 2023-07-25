@@ -21,7 +21,8 @@ import torch
 
 def port_weights(model_type="swin_tiny_patch4_window7_224", 
                 model_savepath =".", 
-                include_top=True
+                include_top=True,
+                model_main_res_fname="main_result.csv"
               ):
 
     print("Intializing the Tensorflow Model")
@@ -49,8 +50,8 @@ def port_weights(model_type="swin_tiny_patch4_window7_224",
     _ = tf_model(dummy_input)
 
     # path not exists 
-    if not os.path.exists('model_main_result.csv'):
-      make_model_res_file("model_main_result.csv")
+    if not os.path.exists(model_main_res_fname):
+      make_model_res_file(model_main_res_fname)
 
     # calculating the flops and nb_params
     nb_flops = tf_model.flops()
@@ -59,9 +60,8 @@ def port_weights(model_type="swin_tiny_patch4_window7_224",
     nb_params = tf_model.count_params()
     nb_params = int(nb_params / 1000000)
 
-    add_model_res('model_main_result.csv', model_type, nb_params, nb_flops)
+    add_model_res(model_main_res_fname, model_type, nb_params, nb_flops)
 
-    """
     print('Loading the Pytorch model!!!')
     #pt_model = SwinForImageClassification.from_pretrained(f"microsoft/{model_type.replace('_', '-')}")
     #pt_model.eval()
@@ -109,8 +109,8 @@ def port_weights(model_type="swin_tiny_patch4_window7_224",
     save_path = os.path.join(model_savepath, model_type)
     save_path = f"{save_path}_fe" if not include_top else save_path
     tf_model.save(save_path)
-    """
-    #print(f"TensorFlow model serialized at: {save_path}...")
+    
+    print(f"TensorFlow model serialized at: {save_path}...")
 
 
 def modify_swin_layer(swin_layer, swin_layer_indx, pt_model_dict):
